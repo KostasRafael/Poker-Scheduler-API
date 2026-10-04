@@ -1,13 +1,13 @@
 import Festival from "../models/festival.model.js";
 import Tournament from "../models/tournament.model.js";
 
-export const getAllFestivals = async () => {
-  const festivals = await Festival.find();
+export const getAllFestivals = async (userId) => {
+  const festivals = await Festival.find({ userId });
 
   return festivals;
 };
 
-export const createNewFestival = async ({
+export const createNewFestival = async (userId, {
   title,
   venue,
   startDate,
@@ -18,6 +18,7 @@ export const createNewFestival = async ({
   }
 
   const festival = await Festival.create({
+    userId,
     title,
     venue,
     startDate,
@@ -27,8 +28,10 @@ export const createNewFestival = async ({
   return festival;
 };
 
-export const getFestivalById = async (festivalId) => {
-  const festival = await Festival.findById(festivalId);
+// Only finds festivals owned by the given user, so other users'
+// festivals are reported as not found
+export const getFestivalById = async (festivalId, userId) => {
+  const festival = await Festival.findOne({ _id: festivalId, userId });
 
   if (!festival) {
     const error = new Error("Festival not found");
@@ -43,16 +46,10 @@ export const getFestivalById = async (festivalId) => {
 
   export const updateFestivalById = async (
   festivalId,
+  userId,
   festivalData
 ) => {
-  const festival = await Festival.findById(festivalId);
-
-  if (!festival) {
-    const error = new Error("Festival not found");
-    error.statusCode = 404;
-    error.code = "FESTIVAL_NOT_FOUND";
-    throw error;
-  }
+  const festival = await getFestivalById(festivalId, userId);
 
   const updatedStartDate =
     festivalData.startDate ?? festival.startDate;
@@ -93,6 +90,7 @@ export const getFestivalById = async (festivalId) => {
 
   const allowedFields = [
     "title",
+    "venue",
     "startDate",
     "endDate",
   ];
@@ -108,15 +106,8 @@ export const getFestivalById = async (festivalId) => {
   return festival;
 };
 
-export const deleteFestivalById = async (festivalId) => {
-  const festival = await Festival.findById(festivalId);
-
-  if (!festival) {
-    const error = new Error("Festival not found");
-    error.statusCode = 404;
-    error.code = "FESTIVAL_NOT_FOUND";
-    throw error;
-  }
+export const deleteFestivalById = async (festivalId, userId) => {
+  const festival = await getFestivalById(festivalId, userId);
 
   await Tournament.deleteMany({ festivalId });
 

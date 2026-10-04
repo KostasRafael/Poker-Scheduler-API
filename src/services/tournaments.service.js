@@ -1,15 +1,28 @@
 import Festival from "../models/festival.model.js";
 import Tournament from "../models/tournament.model.js";
+import { getFestivalById } from "./festivals.service.js";
 
-export const getTournamentsByFestival = async (festivalId) => {
-  const festival = await Festival.findById(festivalId);
+// Tournaments are owned through their festival: a tournament is only
+// found if its festival belongs to the given user
+const findUserTournament = async (tournamentId, userId) => {
+  const tournament = await Tournament.findById(tournamentId);
+
+  const festival =
+    tournament &&
+    (await Festival.findOne({ _id: tournament.festivalId, userId }));
 
   if (!festival) {
-    const error = new Error("Festival not found");
+    const error = new Error("Tournament not found");
     error.statusCode = 404;
-    error.code = "FESTIVAL_NOT_FOUND";
+    error.code = "TOURNAMENT_NOT_FOUND";
     throw error;
   }
+
+  return { tournament, festival };
+};
+
+export const getTournamentsByFestival = async (festivalId, userId) => {
+  await getFestivalById(festivalId, userId);
 
   const tournaments = await Tournament.find({ festivalId });
 
@@ -19,6 +32,7 @@ export const getTournamentsByFestival = async (festivalId) => {
 
 export const createNewTournament = async (
   festivalId,
+  userId,
   {
     title,
     startDate,
@@ -29,14 +43,7 @@ export const createNewTournament = async (
     days,
   }
 ) => {
-  const festival = await Festival.findById(festivalId);
-
-  if (!festival) {
-    const error = new Error("Festival not found");
-    error.statusCode = 404;
-    error.code = "FESTIVAL_NOT_FOUND";
-    throw error;
-  }
+  const festival = await getFestivalById(festivalId, userId);
 
   if (
     startDate < festival.startDate ||
@@ -64,15 +71,8 @@ export const createNewTournament = async (
   return tournament;
 };
 
-export const getTournamentById = async (tournamentId) => {
-  const tournament = await Tournament.findById(tournamentId);
-
-  if (!tournament) {
-    const error = new Error("Tournament not found");
-    error.statusCode = 404;
-    error.code = "TOURNAMENT_NOT_FOUND";
-    throw error;
-  }
+export const getTournamentById = async (tournamentId, userId) => {
+  const { tournament } = await findUserTournament(tournamentId, userId);
 
   return tournament;
 };
@@ -80,27 +80,13 @@ export const getTournamentById = async (tournamentId) => {
 
 export const updateTournamentById = async (
   tournamentId,
+  userId,
   tournamentData
 ) => {
-  const tournament = await Tournament.findById(tournamentId);
-
-  if (!tournament) {
-    const error = new Error("Tournament not found");
-    error.statusCode = 404;
-    error.code = "TOURNAMENT_NOT_FOUND";
-    throw error;
-  }
-
-  const festival = await Festival.findById(
-    tournament.festivalId
+  const { tournament, festival } = await findUserTournament(
+    tournamentId,
+    userId
   );
-
-  if (!festival) {
-    const error = new Error("Festival not found");
-    error.statusCode = 404;
-    error.code = "FESTIVAL_NOT_FOUND";
-    throw error;
-  }
 
   const updatedStartDate =
     tournamentData.startDate ?? tournament.startDate;
@@ -150,15 +136,8 @@ export const updateTournamentById = async (
   return tournament;
 };
 
-export const deleteTournamentById = async (tournamentId) => {
-  const tournament = await Tournament.findByIdAndDelete(
-    tournamentId
-  );
+export const deleteTournamentById = async (tournamentId, userId) => {
+  const { tournament } = await findUserTournament(tournamentId, userId);
 
-  if (!tournament) {
-    const error = new Error("Tournament not found");
-    error.statusCode = 404;
-    error.code = "TOURNAMENT_NOT_FOUND";
-    throw error;
-  }
+  await tournament.deleteOne();
 };

@@ -9,6 +9,7 @@ import {
 } from "../controllers/tournaments.controller.js";
 
 import { validate } from "../middleware/validate.js";
+import { authenticate } from "../middleware/authenticate.js";
 
 import {
   festivalIdParamSchema,
@@ -18,6 +19,9 @@ import {
 } from "../validators/tournaments.validator.js";
 
 const router = express.Router();
+
+// Every festival and tournament endpoint requires a logged-in user
+router.use(authenticate);
 
 // Get all the tournaments that belong to a specific festival
 router.get(

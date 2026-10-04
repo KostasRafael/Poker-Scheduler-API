@@ -2,11 +2,6 @@ export const validate = (schema, source = "body") => {
   return (req, res, next) => {
     const result = schema.safeParse(req[source]);
 
-    console.log("req.params", req.params);
-    console.log("req.body", req.body);
-
-  
-
     if (!result.success) {
       return res.status(400).json({
         error: {

@@ -44,6 +44,12 @@ export const createFestivalSchema = z
       .min(1, "Title is required")
       .optional(),
 
+    venue: z
+      .string()
+      .trim()
+      .min(1, "Venue is required")
+      .optional(),
+
     startDate: z.coerce.date().optional(),
 
     endDate: z.coerce.date().optional(),

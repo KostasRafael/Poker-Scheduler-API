@@ -9,7 +9,8 @@ import {
 export const getFestivalTournaments = async (req, res, next) => {
   try {
     const tournaments = await getTournamentsByFestival(
-      req.params.festivalId
+      req.params.festivalId,
+      req.user.id
     );
 
     res.status(200).json(tournaments);
@@ -22,6 +23,7 @@ export const createTournament = async (req, res, next) => {
   try {
     const tournament = await createNewTournament(
       req.params.festivalId,
+      req.user.id,
       req.body
     );
 
@@ -36,7 +38,8 @@ export const createTournament = async (req, res, next) => {
 export const getTournament = async (req, res, next) => {
   try {
     const tournament = await getTournamentById(
-      req.params.tournamentId
+      req.params.tournamentId,
+      req.user.id
     );
 
     res.status(200).json(tournament);
@@ -49,6 +52,7 @@ export const updateTournament = async (req, res, next) => {
   try {
     const tournament = await updateTournamentById(
       req.params.tournamentId,
+      req.user.id,
       req.body
     );
 
@@ -60,7 +64,7 @@ export const updateTournament = async (req, res, next) => {
 
 export const deleteTournament = async (req, res, next) => {
   try {
-    await deleteTournamentById(req.params.tournamentId);
+    await deleteTournamentById(req.params.tournamentId, req.user.id);
 
     res.status(204).send();
   } catch (error) {

@@ -7,7 +7,7 @@ import { getAllFestivals,
 
 export const getFestivals = async (req, res, next) => {
   try {
-    const festivals = await getAllFestivals();
+    const festivals = await getAllFestivals(req.user.id);
 
     res.status(200).json(festivals);
   } catch (error) {
@@ -17,7 +17,7 @@ export const getFestivals = async (req, res, next) => {
 
 export const createFestival = async (req, res, next) => {
   try {
-    const festival = await createNewFestival(req.body);
+    const festival = await createNewFestival(req.user.id, req.body);
 
     res.status(201).json(festival);
   } catch (error) {
@@ -28,7 +28,8 @@ export const createFestival = async (req, res, next) => {
 export const getFestival = async (req, res, next) => {
   try {
     const festival = await getFestivalById(
-      req.params.festivalId
+      req.params.festivalId,
+      req.user.id
     );
 
     res.status(200).json(festival);
@@ -41,6 +42,7 @@ export const updateFestival = async (req, res, next) => {
   try {
     const festival = await updateFestivalById(
       req.params.festivalId,
+      req.user.id,
       req.body
     );
 
@@ -53,7 +55,7 @@ export const updateFestival = async (req, res, next) => {
 
 export const deleteFestival = async (req, res, next) => {
   try {
-    await deleteFestivalById(req.params.festivalId);
+    await deleteFestivalById(req.params.festivalId, req.user.id);
 
     res.status(204).send();
   } catch (error) {
