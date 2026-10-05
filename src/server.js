@@ -20,6 +20,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+console.log("Environment Variable", process.env.CORS_ORIGIN);
+
 app.use(cors({
 origin: process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim().replace(/\/$/, ""))
